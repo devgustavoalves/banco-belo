@@ -1,3 +1,4 @@
 {
-    "terminal.integrated.defaultProfile.linux": "git-shell"
+    "terminal.integrated.defaultProfile.linux": "git-shell",
+    "terminal.integrated.defaultProfile.osx": ""
 }
