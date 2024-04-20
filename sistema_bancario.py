@@ -1,96 +1,109 @@
 import textwrap
 
-def menu():
-    menu = """
+usuarios = {}
+usuario_logado = None
 
-    [1] Depositar
-    [2] Sacar
-    [3] Extrato
-    [4] Sair
-
-
+def menu_inicial():
+    menu_inicial = """
+    [1] Cadastro
+    [2] Login
+    [3] Sair
     => """
+    return input(textwrap.dedent(menu_inicial))
 
-    return input(textwrap.dedent(menu))
+def criar_usuario():
+    print("=========== CRIAR USUARIO ==========")
+    nome = input("Insira seu nome: ")
+    cpf = input("Insira seu CPF: ")
+    numero_conta = input("Insira o número da sua conta: ")
+    senha = input("Insira a senha da sua conta: ")
 
-def depositar(saldo, valor, extrato, /):
-    if valor > 0:
-        saldo += valor
-        extrato += f"Depósito de R$ {valor:.2f}\n"
-        print(f"Seu saldo agora é R$ {saldo:.2f}\n")
-        print("Obrigado por ser nosso cliente")
+    usuarios[numero_conta] = {"nome": nome, "cpf": cpf, "senha": senha, "saldo": 0, "extrato": "", "limite": 500, "numero_saques": 0, "saques_feitos": 0}
+
+    print("Usuario cadastrado com sucesso! Seja bem-vindo(a) ao banco Belo ", nome)
+
+def login():
+    global usuario_logado
+    print("========== LOGIN ==========")
+    numero_conta = input("Insira o número da conta: ")
+    senha = input("Insira sua senha: ")
+
+    # Verificar se o número da conta existe e se a senha está correta
+    if numero_conta in usuarios and usuarios[numero_conta]["senha"] == senha:
+        print("Login bem-sucedido!\n")
+        usuario_logado = usuarios[numero_conta]
+        return True
     else:
-        print("Operação Falhou! O valor informado é inválido.")
+        print("Número da conta ou senha incorretos. Tente novamente.\n")
+        return False
 
-    return saldo, extrato
-
-def sacar(*, saldo, valor, extrato, limite, numero_saques, limite_saques ):
-        excedeu_saldo = valor > saldo
-        excedeu_saques = numero_saques == limite_saques
-        excedeu_limite = valor > limite
-        if excedeu_saques:
-            print("Você já atingiu o seu limite de 3 saques diários.")
-        elif excedeu_saldo:
-            print("Você não tem dinheiro o suficiente para realizar esse saque")
-        elif excedeu_limite:
-            print("O seu limite de saque por operação é de R$500,00. Insira um valor menor para efetuar o saque.")
-             
-        elif valor > 0:
-            saldo -= valor
-            extrato += f"Saque de R$ {valor:.2f}\n"
-            print(f"Seu saldo agora é R$ {saldo:.2f}\n") 
-            print("Obrigado por ser nosso cliente")
-            numero_saques += 1 
-            print(numero_saques, limite_saques)
-
-        else:
-            print("O valor informado é invalido ")
-        
-        return saldo, extrato, numero_saques
-
-def exibir_extrato(saldo, /, *, extrato):
-    print("========== EXTRATO ==========")
-    print("Nenhuma movimentação foi realizada" if not extrato else extrato)
-    print(f"Seu saldo atual é R${saldo:.2f}")
-
-def main():
-             
-    saldo = 0
-    limite = 500
-    extrato = ""
-    numero_saques = 0
-    LIMITE_SAQUES = 3
-
-
+def menu_principal():
+    global usuario_logado
     while True:
-        opcao = menu()  
+        opcao = input(textwrap.dedent("""
+            [1] Depositar
+            [2] Sacar
+            [3] Extrato
+            [4] Sair
+            => """))
 
         if opcao == "1":
-            print("========== DEPÓSITOS ==========")
-            valor = float(input("Qual valor deseja depositar? ")) 
-            saldo, extrato = depositar(saldo, valor, extrato)
-            
+            depositar(usuario_logado)
         elif opcao == "2":
-            print("========== SAQUES ==========")
-            valor = float(input("Qual valor deseja sacar? ")) 
-            saldo, extrato, numero_saques = sacar(
-                saldo = saldo,
-                valor = valor,
-                extrato = extrato,
-                limite = limite,
-                numero_saques = numero_saques,
-                limite_saques = LIMITE_SAQUES,
-            )
-      
+            sacar(usuario_logado)
         elif opcao == "3":
-             exibir_extrato(saldo, extrato = extrato)
-            
+            extrato(usuario_logado)
         elif opcao == "4":
-            print("Obrigado pela preferência")
+            print("Obrigado por usar nosso sistema.")
+            usuario_logado = None  # Desconectar o usuário ao sair
+            return
+        else:
+            print("Opção inválida. Tente novamente.")
+
+def depositar(usuario_atual):
+    valor = float(input("Digite o valor a ser depositado: "))
+    usuario_atual["saldo"] += valor
+    usuario_atual["extrato"] += f"Depósito: +{valor}\n"
+    print("Depósito realizado com sucesso.")
+
+def sacar(usuario_atual):
+    if usuario_atual["saques_feitos"] >= 3:
+        print("Limite de saques atingido para esta sessão.")
+        return
+
+    valor = float(input("Digite o valor a ser sacado (limite de 500 por saque): "))
+    if valor > usuario_atual["limite"]:
+        print("Limite de saque excedido.")
+        return
+
+    if valor > usuario_atual["saldo"]:
+        print("Saldo insuficiente.")
+    else:
+        usuario_atual["saldo"] -= valor
+        usuario_atual["extrato"] += f"Saque: -{valor}\n"
+        usuario_atual["numero_saques"] += 1
+        usuario_atual["saques_feitos"] += 1
+        print("Saque realizado com sucesso.")
+
+def extrato(usuario_atual):
+    print("Extrato:")
+    print(usuario_atual["extrato"])
+    print(f"Saldo atual: {usuario_atual['saldo']}")
+
+def main():
+    global usuario_logado
+    while True:
+        opcao = menu_inicial()
+
+        if opcao == "1":
+            criar_usuario()
+        elif opcao == "2":
+            if login():
+                menu_principal()
+        elif opcao == "3":
+            print("Obrigado por usar nosso sistema.")
             break
         else:
             print("Digite uma opção válida")
 
 main()
-
-        
