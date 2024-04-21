@@ -1,8 +1,24 @@
 import textwrap
 import re
+import json
+
+ARQUIVO_USUARIOS = "usuarios.json"
 
 usuarios = {}
 usuario_logado = None
+
+def carregar_usuarios():
+    try:
+        with open(ARQUIVO_USUARIOS, 'r') as arquivo:
+            return json.load(arquivo)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+    
+def salvar_usuarios(usuarios):
+    usuarios_existentes = carregar_usuarios()
+    usuarios_existentes.update(usuarios)
+    with open(ARQUIVO_USUARIOS, 'w') as arquivo:
+        json.dump(usuarios_existentes, arquivo)
 
 def verificar_cpf(cpf):
     padrao_cpf = r'^\d{3}\.\d{3}\.\d{3}-\d{2}$'
@@ -31,10 +47,10 @@ def criar_usuario():
     cpf = solicitar_cpf()
     numero_conta = input("Insira o número da sua conta: ")
     senha = input("Insira a senha da sua conta: ")
-
+    usuarios = carregar_usuarios()
     usuarios[numero_conta] = {"nome": nome, "cpf": cpf, "senha": senha, "saldo": 0, "extrato": "", "limite": 500, "numero_saques": 0, "saques_feitos": 0}
-
-    print("Usuario cadastrado com sucesso! Seja bem-vindo(a) ao banco Belo ", nome)
+    usuarios = salvar_usuarios(usuarios)
+    print("Usuario cadastrado com sucesso! Seja bem-vindo(a) ao banco Belo", nome)
 
 def login():
     global usuario_logado
@@ -42,15 +58,22 @@ def login():
     numero_conta = input("Insira o número da conta: ")
     senha = input("Insira sua senha: ")
 
-    # Verificar se o número da conta existe e se a senha está correta
-    if numero_conta in usuarios and usuarios[numero_conta]["senha"] == senha:
+    usuarios = carregar_usuarios()
+
+    if numero_conta not in usuarios:
+        print("Número da conta não cadastrado. Cadastre-se e tente novamente")
+        return criar_usuario()
+
+    if usuarios[numero_conta]["senha"] == senha:
         print("Login bem-sucedido!\n")
         usuario_logado = usuarios[numero_conta]
         return True
     else:
-        print("Número da conta ou senha incorretos. Tente novamente.\n")
+        print("Senha incorreta. Tente novamente.\n")
         return False
 
+    
+   
 def menu_principal():
     global usuario_logado
     while True:
@@ -69,7 +92,7 @@ def menu_principal():
             extrato(usuario_logado)
         elif opcao == "4":
             print("Obrigado por usar nosso sistema.")
-            usuario_logado = None  # Desconectar o usuário ao sair
+            usuario_logado = None 
             return
         else:
             print("Opção inválida. Tente novamente.")
