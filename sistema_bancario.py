@@ -1,6 +1,7 @@
 import textwrap
 import re
 import json
+import time
 
 ARQUIVO_USUARIOS = "usuarios.json"
 
@@ -8,6 +9,8 @@ usuarios = {}
 usuario_logado = None
 
 def carregar_usuarios():
+    print("Carregando dados de usuários...")
+    time.sleep(5)
     try:
         with open(ARQUIVO_USUARIOS, 'r') as arquivo:
             return json.load(arquivo)
@@ -48,7 +51,14 @@ def criar_usuario():
     numero_conta = input("Insira o número da sua conta: ")
     senha = input("Insira a senha da sua conta: ")
     usuarios = carregar_usuarios()
-    usuarios[numero_conta] = {"nome": nome, "cpf": cpf, "senha": senha, "saldo": 0, "extrato": "", "limite": 500, "numero_saques": 0, "saques_feitos": 0}
+    usuarios[numero_conta] = {"nome": nome,
+                              "cpf": cpf,
+                              "senha": senha,
+                              "saldo": 0,
+                              "extrato": "",
+                              "limite": 500,
+                              "numero_saques": 0,
+                              "saques_feitos": 0}
     usuarios = salvar_usuarios(usuarios)
     print("Usuario cadastrado com sucesso! Seja bem-vindo(a) ao banco Belo", nome)
 
@@ -70,9 +80,7 @@ def login():
         return True
     else:
         print("Senha incorreta. Tente novamente.\n")
-        return False
-
-    
+        return False   
    
 def menu_principal():
     global usuario_logado
@@ -143,4 +151,5 @@ def main():
         else:
             print("Digite uma opção válida")
 
-main()
+if __name__ == "__main__":
+    main()
