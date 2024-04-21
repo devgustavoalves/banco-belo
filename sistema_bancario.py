@@ -1,7 +1,21 @@
 import textwrap
+import re
 
 usuarios = {}
 usuario_logado = None
+
+def verificar_cpf(cpf):
+    padrao_cpf = r'^\d{3}\.\d{3}\.\d{3}-\d{2}$'
+    return re.match(padrao_cpf, cpf) is not None
+
+def solicitar_cpf():
+    while True:
+
+        cpf = input("Insira seu CPF (no formato XXX.XXX.XXX-XX): ")
+        if verificar_cpf(cpf):
+            return
+        else:
+            print("CPF inválido. Digite um CPF no formato XXX.XXX.XXX-XX")
 
 def menu_inicial():
     menu_inicial = """
@@ -14,7 +28,7 @@ def menu_inicial():
 def criar_usuario():
     print("=========== CRIAR USUARIO ==========")
     nome = input("Insira seu nome: ")
-    cpf = input("Insira seu CPF: ")
+    cpf = solicitar_cpf()
     numero_conta = input("Insira o número da sua conta: ")
     senha = input("Insira a senha da sua conta: ")
 
