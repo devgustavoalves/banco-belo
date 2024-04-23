@@ -2,15 +2,28 @@ import textwrap
 import re
 import json
 import time
+import datetime
 
 ARQUIVO_USUARIOS = "usuarios.json"
 
 usuarios = {}
 usuario_logado = None
 
+def log_decorator(func):
+    def wrapper(*args, **kwargs):
+        with open("log.txt", "a") as log_file:
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            user = kwargs.get("usuario_atual", None)
+            if user:
+                log_entry = f"{timestamp} - Transação realizada por {user['nome']}: {func.__name__}\n"
+            else:
+                log_entry = f"{timestamp} - Transação realizada: {func.__name__}\n"
+            log_file.write(log_entry)
+        return func(*args, **kwargs)
+    return wrapper
+
 def carregar_usuarios():
     print("Carregando dados de usuários...")
-    time.sleep(5)
     try:
         with open(ARQUIVO_USUARIOS, 'r') as arquivo:
             return json.load(arquivo)
@@ -80,8 +93,8 @@ def login():
         return True
     else:
         print("Senha incorreta. Tente novamente.\n")
-        return False   
-   
+        return False  
+
 def menu_principal():
     global usuario_logado
     while True:
@@ -105,12 +118,14 @@ def menu_principal():
         else:
             print("Opção inválida. Tente novamente.")
 
+@log_decorator
 def depositar(usuario_atual):
     valor = float(input("Digite o valor a ser depositado: "))
     usuario_atual["saldo"] += valor
     usuario_atual["extrato"] += f"Depósito: +{valor}\n"
     print("Depósito realizado com sucesso.")
 
+@log_decorator
 def sacar(usuario_atual):
     if usuario_atual["saques_feitos"] >= 3:
         print("Limite de saques atingido para esta sessão.")
@@ -130,6 +145,7 @@ def sacar(usuario_atual):
         usuario_atual["saques_feitos"] += 1
         print("Saque realizado com sucesso.")
 
+@log_decorator
 def extrato(usuario_atual):
     print("Extrato:")
     print(usuario_atual["extrato"])
