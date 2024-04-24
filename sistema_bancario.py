@@ -31,10 +31,8 @@ def carregar_usuarios():
         return {}
     
 def salvar_usuarios(usuarios):
-    usuarios_existentes = carregar_usuarios()
-    usuarios_existentes.update(usuarios)
     with open(ARQUIVO_USUARIOS, 'w') as arquivo:
-        json.dump(usuarios_existentes, arquivo)
+        json.dump(usuarios, arquivo)
 
 def verificar_cpf(cpf):
     padrao_cpf = r'^\d{3}\.\d{3}\.\d{3}-\d{2}$'
@@ -45,7 +43,7 @@ def solicitar_cpf():
 
         cpf = input("Insira seu CPF (no formato XXX.XXX.XXX-XX): ")
         if verificar_cpf(cpf):
-            return
+            return cpf
         else:
             print("CPF inválido. Digite um CPF no formato XXX.XXX.XXX-XX")
 
@@ -63,16 +61,18 @@ def criar_usuario():
     cpf = solicitar_cpf()
     numero_conta = input("Insira o número da sua conta: ")
     senha = input("Insira a senha da sua conta: ")
+    novo_usuario = {"nome": nome,
+                    "cpf": cpf,
+                    "numero_conta": numero_conta,
+                    "senha": senha,
+                    "saldo": 0,
+                    "extrato": "",
+                    "limite": 500,
+                    "numero_saques": 0,
+                    "saques_feitos": 0}
     usuarios = carregar_usuarios()
-    usuarios[numero_conta] = {"nome": nome,
-                              "cpf": cpf,
-                              "senha": senha,
-                              "saldo": 0,
-                              "extrato": "",
-                              "limite": 500,
-                              "numero_saques": 0,
-                              "saques_feitos": 0}
-    usuarios = salvar_usuarios(usuarios)
+    usuarios[numero_conta] = novo_usuario
+    salvar_usuarios(usuarios)
     print("Usuario cadastrado com sucesso! Seja bem-vindo(a) ao banco Belo", nome)
 
 def login():
@@ -85,7 +85,7 @@ def login():
 
     if numero_conta not in usuarios:
         print("Número da conta não cadastrado. Cadastre-se e tente novamente")
-        return criar_usuario()
+        return False
 
     if usuarios[numero_conta]["senha"] == senha:
         print("Login bem-sucedido!\n")
@@ -123,6 +123,7 @@ def depositar(usuario_atual):
     valor = float(input("Digite o valor a ser depositado: "))
     usuario_atual["saldo"] += valor
     usuario_atual["extrato"] += f"Depósito: +{valor}\n"
+    atualizar_usuario(usuario_atual)
     print("Depósito realizado com sucesso.")
 
 @log_decorator
@@ -143,6 +144,7 @@ def sacar(usuario_atual):
         usuario_atual["extrato"] += f"Saque: -{valor}\n"
         usuario_atual["numero_saques"] += 1
         usuario_atual["saques_feitos"] += 1
+        atualizar_usuario(usuario_atual)
         print("Saque realizado com sucesso.")
 
 @log_decorator
@@ -150,6 +152,11 @@ def extrato(usuario_atual):
     print("Extrato:")
     print(usuario_atual["extrato"])
     print(f"Saldo atual: {usuario_atual['saldo']}")
+
+def atualizar_usuario(usuario_atual):
+    usuarios = carregar_usuarios()
+    usuarios[usuario_atual["numero_conta"]] = usuario_atual
+    salvar_usuarios(usuarios)
 
 def main():
     global usuario_logado
