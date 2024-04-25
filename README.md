@@ -20,6 +20,7 @@ O sistema está em constante desenvolvimento e as seguintes funcionalidades est�
 - Alteração de Senha
 - Bloqueio/Desbloqueio de Conta
 - Agendamento de Pagamentos
+- Criação de uma Interface
 
 ## Como Executar
 
